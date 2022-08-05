@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Company>Microsoft</Company>
     <Authors>Microsoft</Authors>
-    <Product>.NET Community Toolkit</Product>
+    <Product>.NET Community Toolkit (chylex version)</Product>
     <CommonTags>dotnet;Community;Toolkit</CommonTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
