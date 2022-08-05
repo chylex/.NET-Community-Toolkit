@@ -8,7 +8,6 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.ExternalAssembly;
@@ -136,6 +135,46 @@ public partial class Test_ObservablePropertyAttribute
         Assert.AreEqual(changing.Item2, null);
         Assert.AreEqual(changed.Item1?.PropertyName, nameof(SampleModel.Name));
         Assert.AreEqual(changed.Item2, "Bob");
+    }
+
+    [TestMethod]
+    public void Test_ObservablePropertyAttribute_Access_BothPublicDefault()
+    {
+        PropertyInfo prop = typeof(SampleModeWithAccessModifiers).GetProperty(nameof(SampleModeWithAccessModifiers.PrivateSetter))!;
+        Assert.IsTrue(prop.GetGetMethod()!.IsPublic);
+        Assert.IsTrue(prop.GetSetMethod()!.IsPublic);
+    }
+
+    [TestMethod]
+    public void Test_ObservablePropertyAttribute_Access_PrivateGetter()
+    {
+        PropertyInfo prop = typeof(SampleModeWithAccessModifiers).GetProperty(nameof(SampleModeWithAccessModifiers.PrivateGetter))!;
+        Assert.IsTrue(prop.GetGetMethod()!.IsPrivate);
+        Assert.IsTrue(prop.GetSetMethod()!.IsPublic);
+    }
+
+    [TestMethod]
+    public void Test_ObservablePropertyAttribute_Access_PrivateSetter()
+    {
+        PropertyInfo prop = typeof(SampleModeWithAccessModifiers).GetProperty(nameof(SampleModeWithAccessModifiers.PrivateSetter))!;
+        Assert.IsTrue(prop.GetGetMethod()!.IsPublic);
+        Assert.IsTrue(prop.GetSetMethod()!.IsPrivate);
+    }
+
+    [TestMethod]
+    public void Test_ObservablePropertyAttribute_Access_BothInternal1()
+    {
+        PropertyInfo prop = typeof(SampleModeWithAccessModifiers).GetProperty(nameof(SampleModeWithAccessModifiers.InternalGetterSetter1))!;
+        Assert.IsTrue(prop.GetGetMethod()!.IsAssembly);
+        Assert.IsTrue(prop.GetSetMethod()!.IsAssembly);
+    }
+
+    [TestMethod]
+    public void Test_ObservablePropertyAttribute_Access_BothInternal2()
+    {
+        PropertyInfo prop = typeof(SampleModeWithAccessModifiers).GetProperty(nameof(SampleModeWithAccessModifiers.InternalGetterSetter2))!;
+        Assert.IsTrue(prop.GetGetMethod()!.IsAssembly);
+        Assert.IsTrue(prop.GetSetMethod()!.IsAssembly);
     }
 
     [TestMethod]
@@ -926,6 +965,24 @@ public partial class Test_ObservablePropertyAttribute
 
         [ObservableProperty]
         private string? name;
+    }
+
+    public partial class SampleModeWithAccessModifiers : ObservableObject
+    {
+        [ObservableProperty]
+        private int publicDefault;
+        
+        [ObservableProperty(Access.Internal)]
+        private int internalGetterSetter1;
+        
+        [ObservableProperty(Getter = Access.Internal, Setter = Access.Internal)]
+        private int internalGetterSetter2;
+        
+        [ObservableProperty(Getter = Access.Private)]
+        private int privateGetter;
+        
+        [ObservableProperty(Setter = Access.Private)]
+        private int privateSetter;
     }
 
     [INotifyPropertyChanged]

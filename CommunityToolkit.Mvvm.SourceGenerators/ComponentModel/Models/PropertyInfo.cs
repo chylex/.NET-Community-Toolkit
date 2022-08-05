@@ -23,6 +23,7 @@ namespace CommunityToolkit.Mvvm.SourceGenerators.ComponentModel.Models;
 /// <param name="NotifyPropertyChangedRecipients">Whether or not the generated property also broadcasts changes.</param>
 /// <param name="NotifyDataErrorInfo">Whether or not the generated property also validates its value.</param>
 /// <param name="ForwardedAttributes">The sequence of forwarded attributes for the generated property.</param>
+/// <param name="AccessInfo">Specifies the access modifier for the whole property, and its getter and setter.</param>
 internal sealed record PropertyInfo(
     string TypeNameWithNullabilityAnnotations,
     string FieldName,
@@ -32,7 +33,8 @@ internal sealed record PropertyInfo(
     ImmutableArray<string> NotifiedCommandNames,
     bool NotifyPropertyChangedRecipients,
     bool NotifyDataErrorInfo,
-    ImmutableArray<AttributeInfo> ForwardedAttributes)
+    ImmutableArray<AttributeInfo> ForwardedAttributes,
+    PropertyAccess AccessInfo)
 {
     /// <summary>
     /// An <see cref="IEqualityComparer{T}"/> implementation for <see cref="PropertyInfo"/>.
@@ -51,6 +53,7 @@ internal sealed record PropertyInfo(
             hashCode.Add(obj.NotifyPropertyChangedRecipients);
             hashCode.Add(obj.NotifyDataErrorInfo);
             hashCode.AddRange(obj.ForwardedAttributes, AttributeInfo.Comparer.Default);
+            hashCode.Add(obj.AccessInfo);
         }
 
         /// <inheritdoc/>
@@ -65,7 +68,8 @@ internal sealed record PropertyInfo(
                 x.NotifiedCommandNames.SequenceEqual(y.NotifiedCommandNames) &&
                 x.NotifyPropertyChangedRecipients == y.NotifyPropertyChangedRecipients &&
                 x.NotifyDataErrorInfo == y.NotifyDataErrorInfo &&
-                x.ForwardedAttributes.SequenceEqual(y.ForwardedAttributes, AttributeInfo.Comparer.Default);
+                x.ForwardedAttributes.SequenceEqual(y.ForwardedAttributes, AttributeInfo.Comparer.Default) &&
+                x.AccessInfo == y.AccessInfo;
         }
     }
 }

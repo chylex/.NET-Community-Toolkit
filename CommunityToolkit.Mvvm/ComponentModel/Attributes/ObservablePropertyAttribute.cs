@@ -54,4 +54,28 @@ namespace CommunityToolkit.Mvvm.ComponentModel;
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
 public sealed class ObservablePropertyAttribute : Attribute
 {
+    /// <summary>
+    /// Access modifier for the generated getter.
+    /// </summary>
+    public Access Getter = Access.Public;
+
+    /// <summary>
+    /// Access modifier for the generated setter.
+    /// </summary>
+    public Access Setter = Access.Public;
+
+    /// <summary>
+    /// Default constructor.
+    /// </summary>
+    public ObservablePropertyAttribute() {}
+
+    /// <summary>
+    /// Constructor that allows specifying an access modifier for both the generated getter and setter.
+    /// </summary>
+    /// <param name="getterAndSetter">Access modifier for the generated getter and setter.</param>
+    public ObservablePropertyAttribute(Access getterAndSetter)
+    {
+        this.Getter = getterAndSetter;
+        this.Setter = getterAndSetter;
+    }
 }

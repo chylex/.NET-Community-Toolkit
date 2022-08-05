@@ -117,6 +117,8 @@ partial class ObservablePropertyGenerator
                 notifyDataErrorInfo = isValidationTargetValid;
                 hasOrInheritsClassLevelNotifyDataErrorInfo = true;
             }
+            
+            PropertyAccess access = PropertyAccess.Default;
 
             // Gather attributes info
             foreach (AttributeData attributeData in fieldSymbol.GetAttributes())
@@ -166,6 +168,20 @@ partial class ObservablePropertyGenerator
                 {
                     forwardedAttributes.Add(AttributeInfo.From(attributeData));
                 }
+
+                if (attributeData.AttributeClass?.HasOrInheritsFromFullyQualifiedName("global::CommunityToolkit.Mvvm.ComponentModel.ObservablePropertyAttribute") == true)
+                {
+                    if (attributeData.ConstructorArguments.Length == 1 && attributeData.ConstructorArguments[0].Value is int getterAndSetterAccess)
+                    {
+                        access = PropertyAccess.FromEnumValues(getterAndSetterAccess, getterAndSetterAccess);
+                    }
+                    else if (attributeData.NamedArguments.Length > 0)
+                    {
+                        attributeData.TryGetNamedArgument("Getter", out int? getterAccess);
+                        attributeData.TryGetNamedArgument("Setter", out int? setterAccess);
+                        access = PropertyAccess.FromEnumValues(getterAccess, setterAccess);
+                    }
+                }
             }
 
             // Log the diagnostic for missing ObservableValidator, if needed
@@ -201,7 +217,8 @@ partial class ObservablePropertyGenerator
                 notifiedCommandNames.ToImmutable(),
                 notifyRecipients,
                 notifyDataErrorInfo,
-                forwardedAttributes.ToImmutable());
+                forwardedAttributes.ToImmutable(),
+                access);
         }
 
         /// <summary>
@@ -838,14 +855,17 @@ partial class ObservablePropertyGenerator
                     .WithOpenBracketToken(Token(TriviaList(Comment($"/// <inheritdoc cref=\"{propertyInfo.FieldName}\"/>")), SyntaxKind.OpenBracketToken, TriviaList())),
                     AttributeList(SingletonSeparatedList(Attribute(IdentifierName("global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage")))))
                 .AddAttributeLists(forwardedAttributes.ToArray())
-                .AddModifiers(Token(SyntaxKind.PublicKeyword))
+                .AddModifiers(Token(propertyInfo.AccessInfo.Property))
                 .AddAccessorListAccessors(
-                    AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                    AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, propertyInfo.AccessInfo.Getter)
                     .WithExpressionBody(ArrowExpressionClause(IdentifierName(propertyInfo.FieldName)))
                     .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)),
-                    AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                    AccessorDeclaration(SyntaxKind.SetAccessorDeclaration, propertyInfo.AccessInfo.Setter)
                     .WithBody(Block(setterIfStatement)));
         }
+        
+        private static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxKind? modifier)
+            => SyntaxFactory.AccessorDeclaration(kind, default, modifier is null ? default : new SyntaxTokenList(Token(modifier.Value)), default, default);
 
         /// <summary>
         /// Gets the <see cref="MemberDeclarationSyntax"/> instances for the <c>OnPropertyChanging</c> and <c>OnPropertyChanged</c> methods for the input field.
